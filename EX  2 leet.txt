@@ -1,0 +1,179 @@
+                EX : 2
+67. Add Binary
+Solved
+Easy
+Topics
+premium lock icon
+Companies
+Given two binary strings a and b, return their sum as a binary string.
+
+ 
+
+Example 1:
+
+Input: a = "11", b = "1"
+Output: "100"
+Example 2:
+
+Input: a = "1010", b = "1011"
+Output: "10101
+
+char* addBinary(char* a, char* b) {
+    int lenA = strlen(a);
+    int lenB = strlen(b);
+
+    // Maximum result length = max(lenA, lenB) + 1
+    int maxLen = (lenA > lenB ? lenA : lenB) + 2;
+
+    char *result = (char *)malloc(maxLen * sizeof(char));
+
+    int i = lenA - 1;
+    int j = lenB - 1;
+    int k = maxLen - 2;
+
+    result[maxLen - 1] = '\0';
+
+    int carry = 0;
+
+    while (i >= 0 || j >= 0 || carry) {
+        int sum = carry;
+
+        if (i >= 0)
+            sum += a[i--] - '0';
+
+        if (j >= 0)
+            sum += b[j--] - '0';
+
+        result[k--] = (sum % 2) + '0';
+        carry = sum / 2;
+    }
+
+    // Move the result to the beginning
+    char *answer = malloc((maxLen - k - 1) * sizeof(char));
+    strcpy(answer, result + k + 1);
+
+    free(result);
+
+    return answer;
+}
+
+*************************************
+898. Bitwise ORs of Subarrays
+Solved
+Medium
+Topics
+premium lock icon
+Companies
+Hint
+Given an integer array arr, return the number of distinct bitwise ORs of all the non-empty subarrays of arr.
+
+The bitwise OR of a subarray is the bitwise OR of each integer in the subarray. The bitwise OR of a subarray of one integer is that integer.
+
+A subarray is a contiguous non-empty sequence of elements within an array.
+
+ 
+
+Example 1:
+
+Input: arr = [0]
+Output: 1
+Explanation: There is only one possible result: 0.
+
+
+#include <stdlib.h>
+#include <string.h>
+
+#define HASH_SIZE (1 << 22)
+
+typedef struct {
+    int *table;
+    char *used;
+} HashSet;
+
+unsigned int hash(int x) {
+    unsigned int h = (unsigned int)x;
+    h ^= h >> 16;
+    h *= 0x7feb352d;
+    h ^= h >> 15;
+    h *= 0x846ca68b;
+    h ^= h >> 16;
+    return h;
+}
+
+int insert(HashSet *set, int value) {
+    unsigned int index = hash(value) & (HASH_SIZE - 1);
+
+    while (set->used[index]) {
+        if (set->table[index] == value)
+            return 0;   // already exists
+
+        index = (index + 1) & (HASH_SIZE - 1);
+    }
+
+    set->used[index] = 1;
+    set->table[index] = value;
+
+    return 1;           // newly inserted
+}
+
+int subarrayBitwiseORs(int* arr, int arrSize) {
+
+    HashSet set;
+
+    set.table = (int *)calloc(HASH_SIZE, sizeof(int));
+    set.used = (char *)calloc(HASH_SIZE, sizeof(char));
+
+    // At most around 32 distinct OR values are needed
+    // for subarrays ending at one position.
+    int current[35];
+    int currentSize = 0;
+
+    int answer = 0;
+
+    for (int i = 0; i < arrSize; i++) {
+
+        int next[35];
+        int nextSize = 0;
+
+        // Subarray containing only arr[i]
+        next[nextSize++] = arr[i];
+
+        // Extend previous subarrays
+        for (int j = 0; j < currentSize; j++) {
+
+            int value = current[j] | arr[i];
+
+            // Avoid duplicates in next[]
+            if (next[nextSize - 1] != value) {
+                int duplicate = 0;
+
+                for (int k = 0; k < nextSize; k++) {
+                    if (next[k] == value) {
+                        duplicate = 1;
+                        break;
+                    }
+                }
+
+                if (!duplicate)
+                    next[nextSize++] = value;
+            }
+        }
+
+        // Add to global hash set
+        for (int j = 0; j < nextSize; j++) {
+            if (insert(&set, next[j]))
+                answer++;
+        }
+
+        // Current = next
+        currentSize = nextSize;
+
+        for (int j = 0; j < currentSize; j++)
+            current[j] = next[j];
+    }
+
+    free(set.table);
+    free(set.used);
+
+    return answer;
+}

@@ -1,0 +1,35 @@
+int hammingDistance(int x, int y) {
+    int n = x ^ y;
+    int count = 0;
+
+    while (n != 0) {
+        count += n & 1;
+        n = n >> 1;
+    }
+
+    return count;
+}
+
+************************************
+int totalHammingDistance(int* nums, int numsSize) {
+    int total = 0;
+
+    // Check all 32 bit positions
+    for (int bit = 0; bit < 32; bit++) {
+        int ones = 0;
+
+        // Count numbers having 1 at this bit position
+        for (int i = 0; i < numsSize; i++) {
+            if ((nums[i] >> bit) & 1) {
+                ones++;
+            }
+        }
+
+        int zeros = numsSize - ones;
+
+        // Each 1 can form a different pair with each 0
+        total += ones * zeros;
+    }
+
+    return total;
+}
